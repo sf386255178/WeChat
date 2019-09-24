@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <title>Title</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type="text/javascript" src="../js/axios.min.js"></script>
+    <script src="https://cdn.bootcss.com/vue-resource/1.5.1/vue-resource.js"></script>
+
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"/>
+
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+</head>
+<body>
+    <div id="app">
+        微信任务类信息展示
+    </div>
+
+    <div id="tableView">
+        <!--列表顶部搜索和工具条-->
+        <el-row>
+            <el-form :inline="true" :model="searchForm" class="demo-form-inline">
+                <el-form-item label="需求名称">
+                    <el-input v-model="searchForm.keyword" placeholder="名称"></el-input>
+                </el-form-item>
+
+                <el-form-item>
+                    <el-button type="primary" icon="search" @click="loadingData">搜索</el-button>
+                </el-form-item>
+            </el-form>
+        </el-row>
+        <!--列表-->
+        <el-row>
+            <el-table
+                    :data="tableData"
+                    v-loading.body="loading"
+                    border
+                    style="width: 100%">
+
+                <el-table-column
+                        prop="id"
+                        label="序号">
+                </el-table-column>
+
+                <el-table-column
+                        prop="keyword"
+                        label="公众号">
+                </el-table-column>
+
+                <el-table-column
+                        prop="wechat_key"
+                        label="唯一凭证">
+                </el-table-column>
+
+                <el-table-column
+                        prop="page_index"
+                        label="初始偏移量">
+                </el-table-column>
+
+                <el-table-column
+                        prop="status"
+                        label="状态"
+                        :formatter ="stateFormat">
+                </el-table-column>
+
+                <el-table-column
+                        prop="request_id"
+                        label="需求ID">
+                </el-table-column>
+
+                <el-table-column
+                        prop="pass_ticket"
+                        label="通行凭证">
+                </el-table-column>
+            </el-table>
+        </el-row>
+
+        <el-row style="margin-top: 20px" type="flex" justify="end">
+
+            <el-col :span="18" >
+                <el-pagination
+                        style="float: right"
+                        @current-change="currentPageChange"
+                        :current-page="currentPage"
+                        :page-sizes="[10, 20, 30, 50]"
+                        :page-size="pageSize"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="total">
+                </el-pagination>
+            </el-col>
+        </el-row>
+    </div>
+</body>
+<script>
+    var tableView = new Vue({
+        el: '#tableView',
+        data: {
+            //列表数据
+            tableData: [],
+            //下拉框数据
+            states:[],
+            //显示加载中样式
+            loading:false,
+            //搜索表单
+            searchForm: {
+                keyword: ''
+            },
+            //多选值
+            multipleSelection: [],
+            //当前页
+            currentPage:1,
+            //分页大小
+            pageSize:10,
+            //总记录数
+            total:800,
+            //删除的弹出框
+            deleteVisible:false,
+            //编辑界面是否显示
+            editFormVisible: false,
+            goUrl:'',
+            //表单的标题
+            title:'',
+
+        },
+        created:function(){
+            //在 then的内部不能使用Vue的实例化的this, 因为在内部 this 没有被绑定。
+            var self = this;
+            var start =(this.currentPage-1)*this.pageSize+1;
+            // axios交互写法
+            axios.get('/wechat/getInfo?page_num='+start).then(function(response){
+                // console.log(response.data);
+                //alert(response.data.total);
+                self.total=response.data.total;
+                self.tableData = response.data.data;
+            })
+            // vue-resource 交互写法
+            // self.$http.get('/wechat/getInfo?page_num='+start).then(function (response) {
+            //     console.log(response.data);
+            //     self.total = response.data;
+            //     self.tableData = response.total;
+            //     // self.states = response.data.states;
+            // })
+        },
+        methods:{
+            stateFormat(row){
+                if(row.status == 1){
+                    return "正在抓取中";
+                }else if (row.status == 2){
+                    return "抓取已完成";
+                }else
+                    return "抓取未开始";
+                },
+            loadingData:function() {
+                var _self = this;
+                _self.loading = true;
+                //var self = this;
+                var start =this.currentPage;
+                var keyword = this.searchForm.keyword;
+                // alert(keyword);
+                axios.get('/wechat/getInfo?page_num='+start+'&keyword='+keyword).then(function(response){
+                    _self.total=response.data.total;
+                    _self.tableData = response.data.data;
+                })
+                console.log(_self.currentPage);
+                setTimeout(function(){
+                    console.info("加载数据成功");
+                    _self.loading = false;
+                },300);
+            },
+
+            //当前页修改事件
+            currentPageChange:function(val) {
+                this.currentPage = val;
+                console.log('当前页: ' + val);
+                var _self = this;
+                _self.loadingData();//重新加载数据
+            }
+
+        }
+    })
+</script>
+</html>
