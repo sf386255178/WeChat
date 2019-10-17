@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <title>Title</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!--    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>-->
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!--    <script type="text/javascript" src="../js/axios.min.js"></script>-->
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"/>
+
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+</head>
+<body>
+<h3>Excel上传测试</h3>
+
+<div id="file">
+    <div style="margin-left: 25%">
+        <el-form ref="form" :model="form" label-width="90px">
+            <el-col :span="10">
+                <el-form-item label="资料上传:" prop="fileList">
+                    <el-upload
+                            class="upload-demo"
+                            :action="doUpload"
+                            :on-change="addFile"
+                            :on-preview="handlePreview"
+                            :on-remove="handleRemove"
+                            :before-remove="beforeRemove"
+                            :on-success="success"
+                            multiple
+                            ref="upload"
+                            :limit="3"
+                            accept=".txt,.docx,.doc,.xlsx"
+                            :on-exceed="handleExceed"
+                            :file-list="form.fileList">
+                        <!--action上传路径  limit上传个数 accept上传文件的样式-->
+                        <el-button size="small" type="primary">点击上传</el-button>
+                        <div slot="tip" class="el-upload__tip">只能上传txt/xlsx/docx/doc文件，且不超过500kb</div>
+                    </el-upload>
+                </el-form-item>
+            </el-col>
+            </el-row>
+
+
+        </el-form>
+        <div slot="footer" class="dialog-footer" style="margin-left: 10%">
+            <el-button type="primary" @click="onSubmit('form')">提交</el-button>
+            <el-button  @click="resetForm(form)">取消</el-button>
+        </div>
+
+    </div>
+</div>
+</body>
+<script>
+    var tree = new Vue({
+        el:"#file",
+        data: {
+            doUpload:'/file/import',
+            form:{
+                fileList:''
+            }
+        },
+        methods: {
+            onSubmit: function (f) {
+                this.$refs[f].validate((valid) => {
+                    var self = this;
+                    var formData = this.form;
+                    if (valid) {
+                        axios.post("/file/test", formData).then(function (respones) {
+                            if (respones.data == true) {
+                                self.$message({
+                                    message: "提交成功",
+                                    type: "success"
+                                });
+                                self.$refs.upload.clearFiles();//清空已上传的文件列表
+                                self.$refs[f].resetFields();
+                            } else {
+                                self.$message({
+                                    message: "提交失败",
+                                    type: "error"
+                                });
+                            }
+                        });
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                })
+            }
+        }
+    })
+</script>
+</html>
