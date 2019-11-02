@@ -1023,7 +1023,7 @@
         </div>
       </span>
       <h2 id="blob-path" class="breadcrumb flex-auto min-width-0 text-normal flex-md-self-center ml-md-2 mr-md-3 my-2 my-md-0">
-        <span class="js-repo-root text-bold"><span class="js-path-segment"><a data-pjax="true" href="/wenzhixin/bootstrap-table"><span>bootstrap-table</span></a></span></span><span class="separator">/</span><span class="js-path-segment"><a data-pjax="true" href="/wenzhixin/bootstrap-table/file/develop/src"><span>src</span></a></span><span class="separator">/</span><strong class="final-path">bootstrap-table.js</strong>
+        <span class="js-repo-root text-bold"><span class="js-path-segment"><a data-pjax="true" href="/wenzhixin/bootstrap-table"><span>bootstrap-table</span></a></span></span><span class="separator">/</span><span class="js-path-segment"><a data-pjax="true" href="/wenzhixin/bootstrap-table/tree/develop/src"><span>src</span></a></span><span class="separator">/</span><strong class="final-path">bootstrap-table.js</strong>
       </h2>
 
       <div class="BtnGroup flex-shrink-0 d-none d-md-inline-block">

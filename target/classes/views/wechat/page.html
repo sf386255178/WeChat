@@ -29,6 +29,7 @@
 
                 <el-form-item>
                     <el-button type="primary" icon="search" @click="loadingData">搜索</el-button>
+                    <el-button type="primary" icon="search" @click="addData">添加任务</el-button>
                 </el-form-item>
             </el-form>
         </el-row>
@@ -42,11 +43,13 @@
 
                 <el-table-column
                         prop="id"
+                        center
                         label="序号">
                 </el-table-column>
 
                 <el-table-column
                         prop="keyword"
+                        center
                         label="公众号">
                 </el-table-column>
 
@@ -75,6 +78,15 @@
                         prop="pass_ticket"
                         label="通行凭证">
                 </el-table-column>
+
+                <el-table-column
+                prop=""
+                label="操作">
+                <template slot-scope="scope">
+                    <el-button type="primary" round @click="updateClicck(scope.row)" size="small">修改</el-button>
+                    <el-button type="danger" round @click="deleteClick(scope.row)" size="small">删除</el-button>
+                </template>
+                </el-table-column>
             </el-table>
         </el-row>
 
@@ -92,6 +104,59 @@
                 </el-pagination>
             </el-col>
         </el-row>
+
+        <el-dialog :title="title" :visible.sync="editFormVisible" :close-on-click-modal="false">
+            <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
+<!--                <el-form-item label="序号" prop="id">-->
+<!--                    <el-input v-model="editForm.id"  auto-complete="off"></el-input>-->
+<!--                </el-form-item>-->
+
+
+                <el-form-item label="公众号" prop="keyword">
+                    <el-input v-model="editForm.keyword" auto-complete="off"></el-input>
+                </el-form-item>
+
+                <el-form-item label="唯一凭证" prop="wechat_key">
+                    <el-input v-model="editForm.wechat_key" auto-complete="off"></el-input>
+                </el-form-item>
+
+
+
+                <el-form-item label="初始偏移量" prop="page_index">
+                    <el-input v-model="editForm.page_index" auto-complete="off"></el-input>
+                </el-form-item>
+
+                <el-form-item label="状态" prop="status">
+                    <el-select v-model="editForm.status" placeholder="状态" >
+                        <el-option label="未抓取" value="0"></el-option>
+                        <el-option label="已完成" value="2"></el-option>
+                    </el-select>
+                </el-form-item>
+
+<!--                <el-form-item label="状态" prop="state">-->
+<!--                    <el-select v-model="editForm.state" placeholder="状态">-->
+<!--                        <el-option-->
+<!--                                v-for="item in states"-->
+<!--                                :key="item.stateid"-->
+<!--                                :label="item.statename"-->
+<!--                                :value="item.stateid">-->
+<!--                        </el-option>-->
+<!--                        &lt;!&ndash;   <el-option label="已毕业" value="1"></el-option>-->
+<!--                          <el-option label="休学" value="2"></el-option>-->
+<!--                          <el-option label="在读" value="3"></el-option> &ndash;&gt;-->
+<!--                    </el-select>-->
+<!--                </el-form-item>-->
+
+
+
+
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click.native="editFormVisible = false">取消</el-button>
+                <el-button type="primary" @click.native="editSubmit('editForm')" >提交</el-button>
+            </div>
+        </el-dialog>
+
     </div>
 </body>
 <script>
@@ -123,18 +188,58 @@
             goUrl:'',
             //表单的标题
             title:'',
+            //编辑界面数据
+            editForm: {
+                id: '',
+                keyword: '',
+                wechat_key: '',
+                status: '',
+                page_index: ''
+            },
+            editFormRules: {
+                keyword: [
+                    { required: true, message: '请输入公众号', trigger: 'blur' }
+                ],
+                page_index: [
+                    { required: true, message: '请输入初始偏移量', trigger: 'blur' }
+                ],
+                status: [
+                    { required: true, message: '请设置状态', trigger: 'blur' }
+                ],
+            },
 
         },
+        // created:function(){
+        //     //在 then的内部不能使用Vue的实例化的this, 因为在内部 this 没有被绑定。
+        //     var self = this;
+        //     var start =(this.currentPage-1)*this.pageSize+1;
+        //     var keyword = this.searchForm.keyword;
+        //     // axios交互写法
+        //     axios.post('/wechat/getInfo',{'page_num':start,'keyword':keyword}).then(function(response){
+        //         // console.log(response.data);
+        //         //alert(response.data.total);
+        //         self.total=response.data.total;
+        //         self.tableData = response.data.data;
+        //     })
+        //     // vue-resource 交互写法
+        //     // self.$http.get('/wechat/getInfo?page_num='+start).then(function (response) {
+        //     //     console.log(response.data);
+        //     //     self.total = response.data;
+        //     //     self.tableData = response.total;
+        //     //     // self.states = response.data.states;
+        //     // })
+        // },
         created:function(){
             //在 then的内部不能使用Vue的实例化的this, 因为在内部 this 没有被绑定。
             var self = this;
             var start =(this.currentPage-1)*this.pageSize+1;
+            var keyword = this.searchForm.keyword;
             // axios交互写法
-            axios.get('/wechat/getInfo?page_num='+start).then(function(response){
+            axios.get('/wechat/list').then(function(response){
                 // console.log(response.data);
                 //alert(response.data.total);
                 self.total=response.data.total;
-                self.tableData = response.data.data;
+                self.tableData = response.data;
             })
             // vue-resource 交互写法
             // self.$http.get('/wechat/getInfo?page_num='+start).then(function (response) {
@@ -145,22 +250,14 @@
             // })
         },
         methods:{
-            stateFormat(row){
-                if(row.status == 1){
-                    return "正在抓取中";
-                }else if (row.status == 2){
-                    return "抓取已完成";
-                }else
-                    return "抓取未开始";
-                },
             loadingData:function() {
                 var _self = this;
                 _self.loading = true;
                 //var self = this;
                 var start =this.currentPage;
                 var keyword = this.searchForm.keyword;
-                // alert(keyword);
-                axios.get('/wechat/getInfo?page_num='+start+'&keyword='+keyword).then(function(response){
+                var searchFrom = {"page_num":start,"keyword":keyword};
+                axios.post('/wechat/getInfo',searchFrom).then(function(response){
                     _self.total=response.data.total;
                     _self.tableData = response.data.data;
                 })
@@ -170,6 +267,14 @@
                     _self.loading = false;
                 },300);
             },
+            stateFormat(row){
+                if(row.status == 1){
+                    return "正在抓取中";
+                }else if (row.status == 2){
+                    return "抓取已完成";
+                }else
+                    return "抓取未开始";
+            },
 
             //当前页修改事件
             currentPageChange:function(val) {
@@ -177,6 +282,69 @@
                 console.log('当前页: ' + val);
                 var _self = this;
                 _self.loadingData();//重新加载数据
+            },
+            //表格编辑事件
+            updateClicck:function(row) {
+                this.title="修改";
+                this.goUrl="/wechat/update";
+                this.editFormVisible = true;
+                this.editForm = Object.assign({}, row);//将所有可枚举属性的值从一个或多个源对象复制到目标对象
+            },
+            //添加数据
+            addData:function(){
+                this.title = "添加任务";
+                this.goUrl = "/wechat/insert"
+                this.editFormVisible = true;
+                this.editForm = {
+                        keyword: '',
+                        wechat_key: '',
+                        status: '',
+                        page_index: ''
+                };
+            },
+            //删除数据
+            deleteClick:function(row) {
+                var _self = this;
+                this.$confirm('确认删除' + row.keyword +'吗?', '提示', {
+                    type: 'warning'
+                }).then(function(){
+                    var  url="/wechat/del/"+row.id;
+                    axios.get(url).then(function (response) {
+                        if(response.data>0){
+                            _self.$message({
+                                message: row.keyword + '删除成功',
+                                type: 'success'
+                            });
+                            _self.loadingData();//重新加载数据
+                        }
+                    });
+                }).catch(function(e){
+                    if(e != "cancel")
+                        console.log("出现错误：" + e);
+                });
+            },
+            editSubmit(formName){
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        //alert('submit!');
+                        var _self = this;
+                        _self.loading = true;
+                        var formData =this.editForm;
+                        var goUrl=this.goUrl;
+                        axios.post(goUrl,formData).then(function(response){
+                            if(response.data>0){
+                                _self.editFormVisible = false;// 让弹出层隐藏
+                                _self.loadingData();//重新加载数据
+                            }
+                        })
+                    } else {
+                        console.log('error submit!!');
+                return false;
+            }
+            });
+
+
+                console.info(this.editForm);
             }
 
         }

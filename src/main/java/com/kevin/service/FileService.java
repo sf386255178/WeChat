@@ -40,7 +40,7 @@ public class FileService {
 
 //                        msg = "插入数据库成功";
                     final int size = excel.size();
-                    final int nThread = size/1000+1;//线程数量
+                    final int nThread = size/10+1;//线程数量
                     if (size%nThread != 0){
                         Record last = new Record();
                         last.put("shop_id",excel.get(size-1).get("shop_id").toString());
@@ -51,7 +51,7 @@ public class FileService {
                     ExecutorService executorService = Executors.newFixedThreadPool(nThread);
                     List<Future<String>> futures = new ArrayList();//封装子程返回的结果
                     for (int i = 0; i < nThread; i++) {
-                        //回一个子集合 ,左开右闭
+                        //返回一个子集合 ,左开右闭
                         final List<Map> subList = excel.subList(size/nThread * i ,size/nThread*(i+1));
                         Callable<String> task = new Callable<String>() {//每个子程的具体实现
                             @Override
